@@ -1,22 +1,5 @@
 // UI相关函数
 function toggleSettings(e) {
-    // 强化的密码保护校验 - 防止绕过
-    try {
-        if (window.ensurePasswordProtection) {
-            window.ensurePasswordProtection();
-        } else {
-            // 兼容性检查
-            if (window.isPasswordProtected && window.isPasswordVerified) {
-                if (window.isPasswordProtected() && !window.isPasswordVerified()) {
-                    showPasswordModal && showPasswordModal();
-                    return;
-                }
-            }
-        }
-    } catch (error) {
-        console.warn('Password protection check failed:', error.message);
-        return;
-    }
     // 阻止事件冒泡，防止触发document的点击事件
     e && e.stopPropagation();
     const panel = document.getElementById('settingsPanel');
@@ -247,7 +230,7 @@ function renderSearchHistory() {
         const deleteButton = document.createElement('span');
         deleteButton.className = 'pl-1 text-gray-500 hover:text-red-500 transition-colors';
         deleteButton.innerHTML = '<svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
-        deleteButton.onclick = function(e) {
+        deleteButton.onclick = function (e) {
             // 阻止事件冒泡，避免触发搜索
             e.stopPropagation();
             // 删除对应历史记录
@@ -263,7 +246,7 @@ function renderSearchHistory() {
             tag.title = `搜索于: ${date.toLocaleString()}`;
         }
 
-        tag.onclick = function() {
+        tag.onclick = function () {
             document.getElementById('searchInput').value = item.text;
             search();
         };
@@ -288,13 +271,6 @@ function deleteSingleSearchHistory(query) {
 
 // 增加清除搜索历史功能
 function clearSearchHistory() {
-    // 密码保护校验
-    if (window.isPasswordProtected && window.isPasswordVerified) {
-        if (window.isPasswordProtected() && !window.isPasswordVerified()) {
-            showPasswordModal && showPasswordModal();
-            return;
-        }
-    }
     try {
         localStorage.removeItem(SEARCH_HISTORY_KEY);
         renderSearchHistory();
@@ -307,13 +283,6 @@ function clearSearchHistory() {
 
 // 历史面板相关函数
 function toggleHistory(e) {
-    // 密码保护校验
-    if (window.isPasswordProtected && window.isPasswordVerified) {
-        if (window.isPasswordProtected() && !window.isPasswordVerified()) {
-            showPasswordModal && showPasswordModal();
-            return;
-        }
-    }
     if (e) e.stopPropagation();
 
     const panel = document.getElementById('historyPanel');
@@ -656,7 +625,7 @@ async function playFromHistory(url, title, episodeIndex, playbackPosition = 0) {
                 if (idForUrl) playerUrl += `&id=${encodeURIComponent(idForUrl)}`;
             }
         } else {
-             // This case should ideally not happen if 'url' is always a player.html link from history
+            // This case should ideally not happen if 'url' is always a player.html link from history
             // console.warn("Playing from history with a non-player.html URL structure. This might be an issue.");
             const playUrl = new URL(url, window.location.origin);
             if (!playUrl.searchParams.has('index') && episodeIndex > 0) {
@@ -682,13 +651,6 @@ async function playFromHistory(url, title, episodeIndex, playbackPosition = 0) {
 // IMPORTANT: videoInfo passed to this function should include a 'showIdentifier' property
 // (ideally `${sourceName}_${vod_id}`), 'sourceName', and 'vod_id'.
 function addToViewingHistory(videoInfo) {
-    // 密码保护校验
-    if (window.isPasswordProtected && window.isPasswordVerified) {
-        if (window.isPasswordProtected() && !window.isPasswordVerified()) {
-            showPasswordModal && showPasswordModal();
-            return;
-        }
-    }
     try {
         const history = getViewingHistory();
 
@@ -779,7 +741,7 @@ function clearViewingHistory() {
 
 // 更新toggleSettings函数以处理历史面板互动
 const originalToggleSettings = toggleSettings;
-toggleSettings = function(e) {
+toggleSettings = function (e) {
     if (e) e.stopPropagation();
 
     // 原始设置面板切换逻辑
@@ -793,8 +755,8 @@ toggleSettings = function(e) {
 };
 
 // 点击外部关闭历史面板
-document.addEventListener('DOMContentLoaded', function() {
-    document.addEventListener('click', function(e) {
+document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('click', function (e) {
         const historyPanel = document.getElementById('historyPanel');
         const historyButton = document.querySelector('button[onclick="toggleHistory(event)"]');
 

@@ -114,10 +114,10 @@ function resolveUrl(baseUrl, relativeUrl) {
         logDebug(`URL 解析失败: base="${baseUrl}", relative="${relativeUrl}". 错误: ${e.message}`);
         // 简单的备用逻辑
         if (relativeUrl.startsWith('/')) {
-             try {
+            try {
                 const baseOrigin = new URL(baseUrl).origin;
                 return `${baseOrigin}${relativeUrl}`;
-             } catch { return relativeUrl; } // 如果 baseUrl 也无效，返回原始相对路径
+            } catch { return relativeUrl; } // 如果 baseUrl 也无效，返回原始相对路径
         } else {
             // 假设相对于包含基础 URL 资源的目录
             return `${baseUrl.substring(0, baseUrl.lastIndexOf('/') + 1)}${relativeUrl}`;
@@ -195,12 +195,12 @@ function processKeyLine(line, baseUrl) {
 }
 
 function processMapLine(line, baseUrl) {
-     return line.replace(/URI="([^"]+)"/, (match, uri) => {
+    return line.replace(/URI="([^"]+)"/, (match, uri) => {
         const absoluteUri = resolveUrl(baseUrl, uri);
         logDebug(`处理 MAP URI: 原始='${uri}', 绝对='${absoluteUri}'`);
         return `URI="${rewriteUrlToProxy(absoluteUri)}"`;
-     });
- }
+    });
+}
 
 function processMediaPlaylist(url, content) {
     const baseUrl = getBaseUrl(url);
@@ -272,7 +272,7 @@ async function processMasterPlaylist(url, content, recursionDepth) {
         logDebug(`主播放列表中未找到 BANDWIDTH 信息，尝试查找第一个 URI: ${url}`);
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i].trim();
-             // 更可靠地匹配 .m3u8 链接
+            // 更可靠地匹配 .m3u8 链接
             if (line && !line.startsWith('#') && line.match(/\.m3u8($|\?.*)/i)) {
                 bestVariantUrl = resolveUrl(baseUrl, line);
                 logDebug(`备选方案: 找到第一个子播放列表 URI: ${bestVariantUrl}`);
@@ -300,41 +300,6 @@ async function processMasterPlaylist(url, content, recursionDepth) {
     return await processM3u8Content(bestVariantUrl, variantContent, recursionDepth + 1);
 }
 
-/**
- * 验证代理请求的鉴权
- */
-async function validateAuth(req) {
-    const authHash = req.query.auth;
-    const timestamp = req.query.t;
-    
-    // 获取服务器端密码哈希
-    const serverPassword = process.env.PASSWORD;
-    if (!serverPassword) {
-        console.error('服务器未设置 PASSWORD 环境变量，代理访问被拒绝');
-        return false;
-    }
-    
-    // 使用 crypto 模块计算 SHA-256 哈希
-    const serverPasswordHash = crypto.createHash('sha256').update(serverPassword).digest('hex');
-    
-    if (!authHash || authHash !== serverPasswordHash) {
-        console.warn('代理请求鉴权失败：密码哈希不匹配');
-        return false;
-    }
-    
-    // 验证时间戳（10分钟有效期）
-    if (timestamp) {
-        const now = Date.now();
-        const maxAge = 10 * 60 * 1000; // 10分钟
-        if (now - parseInt(timestamp) > maxAge) {
-            console.warn('代理请求鉴权失败：时间戳过期');
-            return false;
-        }
-    }
-    
-    return true;
-}
-
 // --- Vercel Handler 函数 ---
 export default async function handler(req, res) {
     // --- 记录请求开始 ---
@@ -359,17 +324,6 @@ export default async function handler(req, res) {
     let targetUrl = null; // 初始化目标 URL
 
     try { // ---- 开始主处理逻辑的 try 块 ----
-
-        // --- 验证鉴权 ---
-        const isAuthorized = await validateAuth(req);
-        if (!isAuthorized) {
-            console.warn('代理请求鉴权失败');
-            res.status(401).json({
-                success: false,
-                error: '代理访问未授权：请检查密码配置或鉴权参数'
-            });
-            return;
-        }
 
         // --- 提取目标 URL (主要依赖 req.query["...path"]) ---
         // Vercel 将 :path* 捕获的内容（可能包含斜杠）放入 req.query["...path"] 数组
@@ -397,7 +351,7 @@ export default async function handler(req, res) {
 
         // 如果仍然为空，则无法继续
         if (!encodedUrlPath) {
-             throw new Error("无法从请求中确定编码后的目标路径。");
+            throw new Error("无法从请求中确定编码后的目标路径。");
         }
 
         // 解析目标 URL
@@ -436,13 +390,13 @@ export default async function handler(req, res) {
 
             // 设置原始响应头，但排除有问题的头和 CORS 头（已设置）
             responseHeaders.forEach((value, key) => {
-                 const lowerKey = key.toLowerCase();
-                 if (!lowerKey.startsWith('access-control-') &&
-                     lowerKey !== 'content-encoding' && // 很重要！
-                     lowerKey !== 'content-length') {   // 很重要！
-                     res.setHeader(key, value); // 设置其他原始头
-                 }
-             });
+                const lowerKey = key.toLowerCase();
+                if (!lowerKey.startsWith('access-control-') &&
+                    lowerKey !== 'content-encoding' && // 很重要！
+                    lowerKey !== 'content-length') {   // 很重要！
+                    res.setHeader(key, value); // 设置其他原始头
+                }
+            });
             // 设置我们自己的缓存策略
             res.setHeader('Cache-Control', `public, max-age=${CACHE_TTL}`);
 
@@ -450,7 +404,7 @@ export default async function handler(req, res) {
             res.status(200).send(content);
         }
 
-    // ---- 结束主处理逻辑的 try 块 ----
+        // ---- 结束主处理逻辑的 try 块 ----
     } catch (error) { // ---- 捕获处理过程中的任何错误 ----
         // **检查这个错误是否是 "Assignment to constant variable"**
         console.error(`[代理错误处理 V3] 捕获错误！目标: ${targetUrl || '解析失败'} | 错误类型: ${error.constructor.name} | 错误消息: ${error.message}`);
@@ -458,11 +412,11 @@ export default async function handler(req, res) {
 
         // 特别标记 "Assignment to constant variable" 错误
         if (error instanceof TypeError && error.message.includes("Assignment to constant variable")) {
-             console.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-             console.error("捕获到 'Assignment to constant variable' 错误!");
-             console.error("请再次检查函数代码及所有辅助函数中，是否有 const 声明的变量被重新赋值。");
-             console.error("错误堆栈指向:", error.stack);
-             console.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+            console.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+            console.error("捕获到 'Assignment to constant variable' 错误!");
+            console.error("请再次检查函数代码及所有辅助函数中，是否有 const 声明的变量被重新赋值。");
+            console.error("错误堆栈指向:", error.stack);
+            console.error("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
         }
 
         // 尝试从错误对象获取状态码，否则默认为 500
@@ -470,9 +424,9 @@ export default async function handler(req, res) {
 
         // 确保在发送错误响应前没有发送过响应头
         if (!res.headersSent) {
-             res.setHeader('Content-Type', 'application/json');
-             // CORS 头应该已经在前面设置好了
-             res.status(statusCode).json({
+            res.setHeader('Content-Type', 'application/json');
+            // CORS 头应该已经在前面设置好了
+            res.status(statusCode).json({
                 success: false,
                 error: `代理处理错误: ${error.message}`, // 返回错误消息给前端
                 targetUrl: targetUrl // 包含目标 URL 以便调试
@@ -481,13 +435,13 @@ export default async function handler(req, res) {
             // 如果响应头已发送，无法再发送 JSON 错误
             console.error("[代理错误处理 V3] 响应头已发送，无法发送 JSON 错误响应。");
             // 尝试结束响应
-             if (!res.writableEnded) {
-                 res.end();
-             }
+            if (!res.writableEnded) {
+                res.end();
+            }
         }
     } finally {
-         // 记录请求处理结束
-         console.info('--- Vercel 代理请求结束 ---');
+        // 记录请求处理结束
+        console.info('--- Vercel 代理请求结束 ---');
     }
 }
 

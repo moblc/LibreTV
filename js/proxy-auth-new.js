@@ -9,15 +9,15 @@
  * @returns {string} 代理URL
  */
 function generateProxyUrl(targetUrl) {
-    if (!targetUrl) return '';
+  if (!targetUrl) return '';
 
-    try {
-        // 直接返回代理URL，不添加认证参数
-        return `/proxy/${encodeURIComponent(targetUrl)}`;
-    } catch (error) {
-        console.error('生成代理URL时出错:', error);
-        return '';
-    }
+  try {
+    // 直接返回代理URL，不添加认证参数
+    return `/proxy/${encodeURIComponent(targetUrl)}`;
+  } catch (error) {
+    console.error('生成代理URL时出错:', error);
+    return '';
+  }
 }
 
 /**
@@ -25,7 +25,7 @@ function generateProxyUrl(targetUrl) {
  * 保留此函数以兼容现有代码
  */
 async function getAuthHash() {
-    return '';
+  return '';
 }
 
 /**
@@ -33,7 +33,7 @@ async function getAuthHash() {
  * 保留此函数以兼容现有代码
  */
 function clearAuthCache() {
-    // 保留函数以免破坏现有调用，但不执行任何操作
+  // 保留函数以免破坏现有调用，但不执行任何操作
 }
 
 // 暴露到全局作用域
