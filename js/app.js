@@ -258,8 +258,6 @@ function editCustomApi(index) {
     document.getElementById('customApiName').value = api.name;
     document.getElementById('customApiUrl').value = api.url;
     document.getElementById('customApiDetail').value = api.detail || '';
-    const isAdultInput = document.getElementById('customApiIsAdult');
-    if (isAdultInput) isAdultInput.checked = api.isAdult || false;
     const form = document.getElementById('addCustomApiForm');
     if (form) {
         form.classList.remove('hidden');
@@ -277,11 +275,9 @@ function updateCustomApi(index) {
     const nameInput = document.getElementById('customApiName');
     const urlInput = document.getElementById('customApiUrl');
     const detailInput = document.getElementById('customApiDetail');
-    const isAdultInput = document.getElementById('customApiIsAdult');
     const name = nameInput.value.trim();
     let url = urlInput.value.trim();
     const detail = detailInput ? detailInput.value.trim() : '';
-    const isAdult = isAdultInput ? isAdultInput.checked : false;
     if (!name || !url) {
         showToast('请输入API名称和链接', 'warning');
         return;
@@ -292,7 +288,7 @@ function updateCustomApi(index) {
     }
     if (url.endsWith('/')) url = url.slice(0, -1);
     // 保存 detail 字段
-    customAPIs[index] = { name, url, detail, isAdult };
+    customAPIs[index] = { name, url, detail };
     localStorage.setItem('customAPIs', JSON.stringify(customAPIs));
     renderCustomAPIsList();
     checkAdultAPIsSelected();
@@ -300,7 +296,6 @@ function updateCustomApi(index) {
     nameInput.value = '';
     urlInput.value = '';
     if (detailInput) detailInput.value = '';
-    if (isAdultInput) isAdultInput.checked = false;
     document.getElementById('addCustomApiForm').classList.add('hidden');
     showToast('已更新自定义API: ' + name, 'success');
 }
@@ -311,8 +306,6 @@ function cancelEditCustomApi() {
     document.getElementById('customApiName').value = '';
     document.getElementById('customApiUrl').value = '';
     document.getElementById('customApiDetail').value = '';
-    const isAdultInput = document.getElementById('customApiIsAdult');
-    if (isAdultInput) isAdultInput.checked = false;
 
     // 隐藏表单
     document.getElementById('addCustomApiForm').classList.add('hidden');
@@ -393,8 +386,6 @@ function cancelAddCustomApi() {
         document.getElementById('customApiName').value = '';
         document.getElementById('customApiUrl').value = '';
         document.getElementById('customApiDetail').value = '';
-        const isAdultInput = document.getElementById('customApiIsAdult');
-        if (isAdultInput) isAdultInput.checked = false;
 
         // 确保按钮是添加按钮
         restoreAddCustomApiButtons();
@@ -406,11 +397,9 @@ function addCustomApi() {
     const nameInput = document.getElementById('customApiName');
     const urlInput = document.getElementById('customApiUrl');
     const detailInput = document.getElementById('customApiDetail');
-    const isAdultInput = document.getElementById('customApiIsAdult');
     const name = nameInput.value.trim();
     let url = urlInput.value.trim();
     const detail = detailInput ? detailInput.value.trim() : '';
-    const isAdult = isAdultInput ? isAdultInput.checked : false;
     if (!name || !url) {
         showToast('请输入API名称和链接', 'warning');
         return;
@@ -423,7 +412,7 @@ function addCustomApi() {
         url = url.slice(0, -1);
     }
     // 保存 detail 字段
-    customAPIs.push({ name, url, detail, isAdult });
+    customAPIs.push({ name, url, detail });
     localStorage.setItem('customAPIs', JSON.stringify(customAPIs));
     const newApiIndex = customAPIs.length - 1;
     selectedAPIs.push('custom_' + newApiIndex);
@@ -436,7 +425,6 @@ function addCustomApi() {
     nameInput.value = '';
     urlInput.value = '';
     if (detailInput) detailInput.value = '';
-    if (isAdultInput) isAdultInput.checked = false;
     document.getElementById('addCustomApiForm').classList.add('hidden');
     showToast('已添加自定义API: ' + name, 'success');
 }
